@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ktv项目</title>
+</head>
+
+<body>
+	<button id="btn">开始</button>
+	<audio autoplay controls id="audio"></audio>
+	<audio  controls id="music" src="audio_source/pro.mp3"></audio>
+</body>
+
+<script type="text/javascript">
+
+	let dom_audio = document.querySelector('#audio');
+	let dom_music = document.querySelector('#music');
+	let dom_btn = document.querySelector('#btn');
+
+	dom_btn.onclick = function(){
+		let audioCTX = new window.AudioContext();
+		//获取麦克风 并播放人声
+		let constraints = {audio: true};
+		navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
+			//用audio标签播放
+			//dom_audio.srcObject = stream;
+
+			//用webAudio播放 
+			let source = audioCTX.createMediaStreamSource(stream);
+			source.connect(audioCTX.destination);
+		});
+
+
+		//获取音乐音轨  分离出伴奏
+		
+		// let source = audioCTX.createMediaElementSource(dom_music);
+		// let destination = audioCTX.destination;
+		// source.connect(destination);
+
+
+		
+
+
+
+	};
+</script>
+</html>

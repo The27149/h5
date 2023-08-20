@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+<span>fps:</span><span id='fps'></span>
+</body>
+<script type="text/javascript">
+
+	
+	let last = new Date().getTime();
+	let offset = 0;
+	let fps = 0;
+	let loop = () => {
+		offset = new Date().getTime() - last;
+		if(offset >= 1000){
+			updateFPS();
+			last += offset;
+			offset = 0;
+			fps = 0;
+		}
+		fps++;
+		window.requestAnimationFrame(loop);
+	};
+
+	let updateFPS = function(){
+		document.getElementById('fps').innerHTML = fps;
+	}
+
+	loop();
+</script>
+</html>

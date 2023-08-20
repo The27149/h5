@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>播放图片声音</title>
+	<style type="text/css">
+		#canvas{
+			display: none;
+		}
+
+
+	</style>
+</head>
+<body>
+	<input id="input" type="file" accept="image/*" name="">
+	<img id="img" src="">
+	<canvas id="canvas">你的浏览器不支持canvas</canvas>
+</body>
+<script type="text/javascript" src="js/Tools.js"></script>
+<script type="text/javascript">
+(function(){;
+
+	let dom_input = Tools.$$('#input');
+	let dom_img = Tools.$$('#img');
+	let dom_canvas = Tools.$$('#canvas');
+
+	dom_input.addEventListener('change', function(e){ updateFiles(e) });
+
+
+	let files = null;		//暂存上传的文件
+	let canvasCTX = dom_canvas.getContext('2d');
+	let audioCTX = new AudioContext();
+
+	let updateFiles = function(e){
+		files = e.target.files;
+
+		let reader1 = new FileReader();
+		reader1.readAsDataURL(files[0]);
+		reader1.onload = function(e){
+			dom_img.src = this.result;
+			dom_img.onload = dealByCanvas;
+		};
+
+		let reader2 = new FileReader();
+		reader2.readAsArrayBuffer(files[0]);
+		reader2.onload = function(e){
+			let buffer = e.target.result;
+			dealByAudio(buffer);
+		};
+
+	};
+
+	//当作图片处理
+	let dealByCanvas = function(){
+		let imageData = canvasCTX.getImageData(0, 0, dom_img.width, dom_img.height);
+		console.log('imageData:', imageData);
+	};
+
+	//当作arrayBuffer处理
+	let dealByAudio = function(buffer){
+		let source = audioCTX.createBufferSource();
+		source.connect(audioCTX.destination);
+
+		audioCTX.decodeAudioData(buffer, function(buf){
+			source.buffer = buf;
+			source.start();
+		})	
+	};
+
+
+})();
+</script>
+
+<html>

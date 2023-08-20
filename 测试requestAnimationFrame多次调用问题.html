@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+</body>
+<script type="text/javascript">
+
+	let a = 0, b = 0;
+	let first = () => {
+		a++;
+		if(a >= 60){
+			console.log('a:', a);
+			a = 0;
+		}
+		window.requestAnimationFrame(first);
+	};
+
+	let second = () => {
+		b++;
+		if(b >= 60){
+			console.log('b:', b);
+			b = 0;
+		}
+		window.requestAnimationFrame(second);
+	};
+window.requestAnimationFrame(first);
+window.requestAnimationFrame(second);
+
+//结论 1，此函数的返回值是递增的id  可以多次调用不会覆盖
+//		2，此函数本身只执行一次，回调中要递归调用
+
+
+
+</script>
+</html>

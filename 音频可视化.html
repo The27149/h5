@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>音频可视化</title>
+	<style type="text/css">
+		body {
+			margin: 0;
+		}
+
+		#file {
+			display: none;
+		}
+
+		canvas {
+			background: gray;
+		}
+	</style>
+</head>
+
+<body>
+	<!-- webkitdirectory:选择文件夹  multiple:选择多个文件 -->
+	<input type="file" id="file" accept="audio/*" multiple>
+	<input type="button" id="fileBtn" value="选择音乐">
+	<input type="button" id="playBtn" value="开始播放">
+
+	<audio id="audio" autoplay></audio>
+	<br><br><br>
+	<canvas id="canvas" width="960" height="480">浏览器不支持canvas!!!</canvas>
+</body>
+<script type="text/javascript">
+	(function () {
+		let getDom = function (selector) {
+			return document.querySelector(selector);
+		};
+
+		let dom_file = getDom('#file'),
+			dom_fileBtn = getDom('#fileBtn'),
+			dom_playBtn = getDom('#playBtn');
+
+		//代理原本的input[file]标签点击事件
+		dom_fileBtn.addEventListener('click', function (e) { dom_file.click() });
+		//点击播放按钮
+		dom_playBtn.addEventListener('click', function () { readAudio() });
+
+		//监听文件选定事件
+		dom_file.addEventListener('change', function (e) { files = this.files; })
+
+
+		let canvas = getDom('#canvas');
+		let canvasCtx = canvas.getContext('2d');
+		let audioCtx = new window.AudioContext();
+		let files = null;
+
+
+		let analyser = audioCtx.createAnalyser();
+		analyser.fftSize = 512;
+		let bufferLength = analyser.frequencyBinCount;
+		let domainData = new Uint8Array(bufferLength);
+		let frequencyData = new Uint8Array(bufferLength);
+		let sampleRate = 0;		//采样率
+		let drawData = {};		//绘制数据
+
+
+		//读取文件
+		let readAudio = function () {
+			if (files) {
+				let reader = new FileReader();
+				reader.readAsArrayBuffer(files[0]);
+				reader.onload = function (e) {
+					// console.log(this.result);
+					analysisAudio(this.result);
+				};
+			} else {
+				alert('请先上传音乐文件!!');
+			}
+		};
+
+		//处理音频
+		let analysisAudio = function (buffer) {
+			audioCtx.decodeAudioData(buffer, function (buf) {
+				console.log('音频采样率：', buf.sampleRate);
+				sampleRate = buf.sampleRate;
+				source.buffer = buf;
+				source.start();
+
+				preAllDraw();
+				draw();
+			});
+			let source = audioCtx.createBufferSource();
+			source.connect(analyser).connect(audioCtx.destination);
+		};
+
+
+
+		let preAllDraw = function () {
+			// canvasCtx.lineWidth = 1;
+			// canvasCtx.strokeStyle = 'purle';
+
+			drawData.sliceWidth = Math.floor(canvas.width * 1.0 / bufferLength) + 1;
+
+			drawData.gradient = canvasCtx.createLinearGradient(0, canvas.height, canvas.width, 0);
+			drawData.gradient.addColorStop(0, 'green');
+			drawData.gradient.addColorStop(1, 'yellow');
+
+			drawData.time = performance.now();
+
+		};
+
+		let preEveryDraw = function () {
+			//更新音频数据
+			analyser.getByteFrequencyData(frequencyData);
+
+			canvasCtx.fillStyle = 'gray';
+			canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+		};
+
+		let draw = function (dt) {
+			window.requestAnimationFrame(draw);
+			//console.log('dt:', dt); 
+			// 40ms 内不更新
+			if(dt - drawData.time < 40){
+				return;
+			}else{
+				drawData.time = dt;
+			}
+			preEveryDraw();
+
+			let x = canvas.width;
+			//数组中数据是由高频到低频 因此反序绘制，从左到右 频率由低到高
+			for (let i = 0; i < bufferLength; i++) {
+				canvasCtx.fillStyle = drawData.gradient;
+				let v = frequencyData[i] / 256.0;
+				let y = v * canvas.height * 0.8;
+				canvasCtx.fillRect(x, canvas.height - y, drawData.sliceWidth, y);
+
+				x -= drawData.sliceWidth + 1;
+			}
+		};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	})();
+</script>
+
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+</body>
+<script type="text/javascript">
+	let cache = [];
+
+	function f(n){
+		if(n === 1) return 1;
+		if(n === 2) return 1;
+		if(cache[n]){
+			return cache[n];
+		}else{
+			let r = 2 * f(n - 2) + f(n - 1) + 1;
+			cache[n] = r;
+			return r;
+		}
+	}
+	let r = f(9);
+	console.log('缓存列表为', cache);
+	console.log(`九连环操作次数 = ${r}`);
+
+
+</script>
+</html>

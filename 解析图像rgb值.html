@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		div{
+			/*background: red;*/
+			width: 1000px;
+			height: 500px;
+		}
+		#img{
+			width: auto;
+			height: auto;
+			max-width: 100%;
+			max-height: 100%;
+		}
+		
+</style>
+</head>
+
+<body>
+	<input id="file" type="file" name="图片" accept="image/*">
+	<div>
+		<img id="img" src="">
+	</div>
+	<canvas width="1000" height="500" id="canvas"></canvas>
+	
+
+</body>
+<script type="text/javascript" src="http://apps.bdimg.com/libs/jquery/1.6.4/jquery.min.js"></script>
+<script type="text/javascript">
+	$('#file').change(function(e){
+		let file = e.target.files[0];
+
+		let reader = new FileReader();
+		reader.onload = function(e){
+			console.log('读取图片数据:', e);
+			$('#img').attr('src', e.target.result);
+			let img = $('#img')[0];
+
+			img.onload = function(){
+				let ctx = $('#canvas')[0].getContext('2d');
+				ctx.drawImage(img, 0, 0, img.width, img.height);
+				let imageData = ctx.getImageData(0, 0, img.width, img.height);
+				var length = imageData.data.length;
+
+				let oldData = JSON.parse(JSON.stringify(imageData.data));
+
+				for (var index = 0; index < length; index += 4) {
+
+					//挖洞
+					// let w = img.width, h = img.height;
+					// let x0 = w / 2, y0 = h / 2;
+
+					// // let id = Math.floor( index  / 4);
+					// // let x1 = id % w, y1 = Math.floor( id / w);
+					// let point = Tools.getPointByIndex(w, index);
+					// let x1 = point.x, y1 = point.y;
+
+					// let s = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
+					// if(Math.sqrt(s) < 50){
+					// 	imageData.data[index + 3] = 0;
+					// }
+
+					//模糊
+					let percent =2;	//左右一个像素做均值模糊
+					// let red0 = oldData[index - 4] || 0, red1 = oldData[index + 4] || 0;
+					// let green0 = oldData[index - 3] || 0, green1 = oldData[index + 3] || 0;
+					// let blue0 = oldData[index - 2] || 0, blue1 = oldData[index + 2] || 0;
+
+
+					// let red = imageData.data[index] - Tools.getAverageOfPoints(oldData, index, percent, img.width, 0);
+					// let green = imageData.data[index + 1] - Tools.getAverageOfPoints(oldData, index + 1, percent, img.width, 1);
+					// let blue = imageData.data[index + 2] - Tools.getAverageOfPoints(oldData, index + 2, percent, img.width, 2);
+
+					let red = 255 - oldData[index];
+					let green = 255 - oldData[index + 1];
+					let blue = 255 - oldData[index + 2];
+
+					imageData.data[index] = red;
+			        imageData.data[index + 1] = green;
+			        imageData.data[index + 2] = blue;
+
+			  		//变黑白
+			  		// let a = imageData.data[index];
+			  		// // let r = imageData.data[index] < 127 ? 0 : 255;
+			  		// // let g = imageData.data[index + 1] < 127 ? 0 : 255;
+			  		// // let b = imageData.data[index + 2] < 127 ? 0 : 255;
+			  		// imageData.data[index] = a;
+			    //     imageData.data[index + 1] = 0;
+			    //     imageData.data[index + 2] = 0;
+
+					//变灰
+			        // var r = imageData.data[index];
+			        // var g = imageData.data[index + 1];
+			        // var b = imageData.data[index + 2];
+			        // // 计算灰度
+			        // var gray = r * 0.299 + g * 0.587 + b * 0.114;
+			        // imageData.data[index] = gray;
+			        // imageData.data[index + 1] = gray;
+			        // imageData.data[index + 2] = gray;
+			    }
+
+			     ctx.putImageData(imageData, 0, 0);
+
+			};
+
+			
+		};
+		reader.readAsDataURL(file);
+	});
+
+	let Tools = {};
+
+	//由下标获取像素点坐标  左上角为（0,0）
+	Tools.getPointByIndex = function(width,index){
+		let id = Math.floor( index  / 4);
+		let y = id % width, x = Math.floor(id / width);
+		return {x: x, y: y}
+	};
+
+	Tools.getIndexByPoint = function(width,x,y,color){
+		if(x <= 0 || y <= 0) return 0
+		let index = width * (x - 1) * 4 + (y - 1) * 4 + color;
+		return index
+	};
+
+	Tools.getAverageOfPoints = function(arr,index,n,w, color){
+		let s = arr[index];
+		// let s = 0;
+		let point = Tools.getPointByIndex(w, index);
+		for(let i = 0; i < n; i++){
+			// s += arr[index - n * 4] + arr[index + n * 4];
+			// let index_up = Tools.getIndexByPoint(w, point.x - n, point.y),
+			// 	index_down = Tools.getIndexByPoint(w, point.x + n, point.y);
+			// s += arr[index_up] + arr[index_down];
+
+			let index_left = Tools.getIndexByPoint(w, point.x, point.y - n, color),
+				index_right = Tools.getIndexByPoint(w, point.x, point.y + n, color),
+				index_up = Tools.getIndexByPoint(w, point.x - n, point.y, color),
+				index_down = Tools.getIndexByPoint(w, point.x + n, point.y, color);
+			s += arr[index_left] + arr[index_right] + arr[index_up] + arr[index_down];
+		}
+		return s / (n * 4 + 1)
+	};
+
+
+</script>
+</html>

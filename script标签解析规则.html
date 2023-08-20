@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+
+<script type="text/javascript">
+	let div1 = document.getElementById('div');
+	console.log('div1', div1);
+
+</script>
+<body>
+	<div id='div'></div>
+</body>
+<script type="text/javascript">
+	let div2 = document.getElementById('div');
+	console.log('div2' ,div2);
+
+//结论： 遇到script标签 dom解析暂停了，所以div1取不到值
+</script>
+
+</html>
